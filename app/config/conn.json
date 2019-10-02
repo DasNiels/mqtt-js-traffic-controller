@@ -1,6 +1,5 @@
 {
   "connectTimeout": 5000,
-  "hostname": "broker.hivemq.com",
-  "port": 8000,
-  "path": "/mqtt"
+  "hostname": "91.121.165.36",
+  "port": 1883
 }

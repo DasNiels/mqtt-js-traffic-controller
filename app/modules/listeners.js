@@ -1,9 +1,9 @@
 
-export const laneTypes = [ 'foot', 'cycle', 'motorised', 'vessel', 'track' ];
-export const totalGroups = 30;
-export const componentTypes = [ 'traffic_light', 'warning_light', 'sensor' ];
+const laneTypes = [ 'foot', 'cycle', 'motorised', 'vessel', 'track' ];
+const totalGroups = 30;
+const componentTypes = [ 'traffic_light', 'warning_light', 'sensor' ];
 
-export function getListeners( ) {
+function getListeners( ) {
     let listeners = [ ];
 
     laneTypes.forEach( lane => {
@@ -18,3 +18,10 @@ export function getListeners( ) {
     return listeners;
 }
 
+
+
+
+
+module.exports = {
+    getListeners
+};

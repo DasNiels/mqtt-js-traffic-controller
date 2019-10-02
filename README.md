@@ -6,4 +6,9 @@ Made by Niels Visbeek & John Hawkins for Software Development 2019
 # Installation
 - Clone package
 - ``npm install``
+- ``cd ./app``
+- ``node main.js``
+
+# Building for web
+- ``npm install``
 - ``npm run build``

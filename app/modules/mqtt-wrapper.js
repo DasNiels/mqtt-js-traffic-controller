@@ -8,7 +8,7 @@ const mqtt = require( 'mqtt' );
  * @param onMessage function A function that gets called when a message is recieved on one of the topics that it's listening to
  * @constructor
  */
-export function MqttWrapper( options, topics, onMessage ) {
+function MqttWrapper( options, topics, onMessage ) {
 
     this.client = null;
     this.options = options;
@@ -118,3 +118,7 @@ export function MqttWrapper( options, topics, onMessage ) {
         this.client.publish( topic, data );
     };
 }
+
+module.exports = {
+    MqttWrapper
+};
