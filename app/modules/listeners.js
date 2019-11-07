@@ -1,7 +1,7 @@
 
 const laneTypes = [ 'foot', 'cycle', 'motorised', 'vessel', 'track' ];
 const totalGroups = 30;
-const componentTypes = [ 'traffic_light', 'warning_light', 'sensor' ];
+const componentTypes = [ 'traffic_light', 'warning_light', 'sensor', 'barrier' ];
 
 function getListeners( ) {
     let listeners = [ ];

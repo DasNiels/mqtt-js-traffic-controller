@@ -30,10 +30,34 @@ const WARNING_LIGHT_STATUS = {
     ON: 1
 };
 
+const SENSOR_STATUS = {
+    INACTIVE: 0,
+    ACTIVE: 1
+};
+
 const BARRIER_STATUS = {
     GREEN: 0,
     RED: 1
 };
+
+const componentTypes = [
+    // {
+    //     name: 'traffic_light',
+    //     statusTypes: TRAFFIC_LIGHT_STATUS
+    // },
+    // {
+    //     name: 'warning_light',
+    //     statusTypes: WARNING_LIGHT_STATUS
+    // },
+    {
+        name: 'sensor',
+        statusTypes: SENSOR_STATUS
+    },
+    // {
+    //     name: 'barrier',
+    //     statusTypes: BARRIER_STATUS
+    // }
+];
 
 const globalGroupId = 16;
 
@@ -48,7 +72,7 @@ function generateTrafficData( type, minGroupId, maxGroupId ) {
     {
         data.groups.push( {
             id: i,
-            totalInQueue: 0,
+            sensorActivated: false,
             lastGreenLight: new Date(),
             currentStatus: 0
         } );
@@ -59,21 +83,29 @@ function generateTrafficData( type, minGroupId, maxGroupId ) {
 
 let trafficData = [ ];
 
-generateTrafficData( 'foot', 22, 29 );
-generateTrafficData( 'cycle', 0, 6 );
-generateTrafficData( 'motorised', 7, 17 );
-generateTrafficData( 'vessel', 18, 19 );
-generateTrafficData( 'track', 20, 21 );
+generateTrafficData( 'foot', 0, 7 );
+generateTrafficData( 'cycle', 0, 5 );
+generateTrafficData( 'motorised', 0, 8 );
+generateTrafficData( 'vessel', 0, 1 );
+generateTrafficData( 'track', 0, 1 );
 
 function fetchListeners( ) {
     let listeners = [ ];
 
     trafficData.forEach( t => {
+
         t.groups.forEach( g => {
-            listeners.push( `${ globalGroupId }/${ t.type }/${ g.id }/queue/add` );
-            listeners.push( `${ globalGroupId }/${ t.type }/${ g.id }/queue/remove` );
-            listeners.push( `${ globalGroupId }/${ t.type }/${ g.id }/status/change` );
+
+            componentTypes.forEach( c => {
+
+                // c.statusTypes.forEach( t => {
+                    listeners.push( `${ globalGroupId }/${ t.type }/${ g.id }/${ c.name }` ); // /${ t }
+                // } );
+
+            } );
+
         } );
+
     } );
 
     return listeners;

@@ -12,9 +12,9 @@ const mqtt = new MqttWrapper( config, fetchListeners( ), onMessage );
 
 // when a message is recieved, log it's topic and message
 function onMessage( topic, data ) {
-    console.log( `${ topic }: ${ data.toString( ) }` );
+    console.log( `data recieved: ${ topic }: ${ data.toString( ) }` );
 
-    const [ gId, trafficType, groupId, actionType, action ] = topic.split( '/' );
+    const [ gId, trafficType, groupId, componentType, action ] = topic.split( '/' );
 
     if( +gId !== globalGroupId )
         return console.log( '[ERROR] GroupID isnt valid!' );
@@ -29,20 +29,7 @@ function onMessage( topic, data ) {
     if( !currentTrafficGroup )
         return console.log( '[ERROR] Invalid group ID specified.' );
 
-    if( actionType === 'queue' )
-    {
-        if( action === 'add' )
-            currentTrafficGroup.totalInQueue += +data;
-        else
-            currentTrafficGroup.totalInQueue -= +data;
-    }
-
-    else if( actionType === 'status' )
-    {
-        currentTrafficGroup.currentStatus = +data;
-    }
-
-    console.log( JSON.stringify( trafficData ) );
+    // console.log( JSON.stringify( trafficData ) );
 }
 
 // run calls in async wrapper to await connection
@@ -52,10 +39,15 @@ function onMessage( topic, data ) {
     await mqtt.connect( );
 
     // submit data to foo and bar
-    mqtt.submit( '16/foot/22/queue/add', "2" );
-    mqtt.submit( '16/cycle/2/queue/add', "6" );
-    mqtt.submit( '16/motorised/10/queue/add', "4" );
-    mqtt.submit( '16/vessel/18/queue/add', "3" );
-    mqtt.submit( '16/track/20/queue/add', "1" );
+    mqtt.submit( '16/foot/0/sensor', "2" );
 } )( );
 
+setInterval( ( ) => {
+
+    trafficData.forEach( t => {
+
+
+
+    } );
+
+}, 500 );
