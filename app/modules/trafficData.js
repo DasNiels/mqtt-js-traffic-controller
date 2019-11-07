@@ -59,7 +59,129 @@ const componentTypes = [
     // }
 ];
 
-const globalGroupId = 16;
+const disallowedTrafficLights = [
+
+    { // Noord -> Oost
+        laneType: 'motorised',
+        groupId: 0,
+        disallowed: [
+            { type: 'motorised', groupId: 4 },
+            { type: 'motorised', groupId: 5 },
+            { type: 'motorised', groupId: 7 },
+        ]
+    },
+
+    { // Noord -> Zuid
+        laneType: 'motorised',
+        groupId: 1,
+        disallowed: [
+            { type: 'motorised', groupId: 4 },
+            { type: 'motorised', groupId: 6 },
+            { type: 'motorised', groupId: 7 },
+            { type: 'motorised', groupId: 8 },
+        ]
+    },
+
+    { // Noord -> West
+        laneType: 'motorised',
+        groupId: 2,
+        disallowed: [
+            { type: 'motorised', groupId: 6 },
+        ]
+    },
+
+    { // Oost -> Noord
+        laneType: 'motorised',
+        groupId: 3,
+        disallowed: [
+            { type: 'motorised', groupId: 5 },
+            { type: 'motorised', groupId: 7 },
+        ]
+    },
+
+    { // Oost -> Zuid
+        laneType: 'motorised',
+        groupId: 4,
+        disallowed: [
+            { type: 'motorised', groupId: 0 },
+            { type: 'motorised', groupId: 1 },
+            { type: 'motorised', groupId: 5 },
+            { type: 'motorised', groupId: 8 },
+        ]
+    },
+
+    { // Zuid -> Noord & Oost
+        laneType: 'motorised',
+        groupId: 5,
+        disallowed: [
+            { type: 'motorised', groupId: 0 },
+            { type: 'motorised', groupId: 3 },
+            { type: 'motorised', groupId: 4 },
+            { type: 'motorised', groupId: 7 },
+        ]
+    },
+
+    { // Zuid -> West
+        laneType: 'motorised',
+        groupId: 6,
+        disallowed: [
+            { type: 'motorised', groupId: 1 },
+            { type: 'motorised', groupId: 2 },
+            { type: 'motorised', groupId: 4 },
+            { type: 'motorised', groupId: 7 },
+        ]
+    },
+
+    { // West -> Noord
+        laneType: 'motorised',
+        groupId: 7,
+        disallowed: [
+            { type: 'motorised', groupId: 0 },
+            { type: 'motorised', groupId: 1 },
+            { type: 'motorised', groupId: 3 },
+            { type: 'motorised', groupId: 5 },
+            { type: 'motorised', groupId: 6 },
+        ]
+    },
+
+    { // West -> Zuid
+        laneType: 'motorised',
+        groupId: 8,
+        disallowed: [
+            { type: 'motorised', groupId: 1 },
+            { type: 'motorised', groupId: 4 },
+        ]
+    },
+
+];
+
+
+// west to east motorised
+// [
+//     { type: 'foot', groupId: 2 },
+//     { type: 'foot', groupId: 3 },
+//     { type: 'foot', groupId: 6 },
+//     { type: 'foot', groupId: 7 },
+//     { type: 'cycle', groupId: 1 },
+//     { type: 'cycle', groupId: 4 },
+//     { type: 'cycle', groupId: 5 },
+//     { type: 'motorised', groupId: 0 },
+//     { type: 'motorised', groupId: 1 },
+//     { type: 'motorised', groupId: 4 },
+//     { type: 'motorised', groupId: 5 },
+//     { type: 'motorised', groupId: 6 },
+// ]
+
+const teamId = 16;
+
+function getDisallowedTrafficLights( type, groupId ) {
+    let dtl = disallowedTrafficLights.find( dt => dt.laneType === type && dt.groupId === groupId );
+
+    if( !dtl )
+        return [];
+
+    return dtl.disallowed;
+}
 
 function generateTrafficData( type, minGroupId, maxGroupId ) {
 
@@ -74,7 +196,9 @@ function generateTrafficData( type, minGroupId, maxGroupId ) {
             id: i,
             sensorActivated: false,
             lastGreenLight: new Date(),
-            currentStatus: 0
+            currentStatus: TRAFFIC_LIGHT_STATUS.RED,
+
+            disallowedTrafficLights: getDisallowedTrafficLights( type, i )
         } );
     }
 
@@ -99,7 +223,7 @@ function fetchListeners( ) {
             componentTypes.forEach( c => {
 
                 // c.statusTypes.forEach( t => {
-                    listeners.push( `${ globalGroupId }/${ t.type }/${ g.id }/${ c.name }` ); // /${ t }
+                    listeners.push( `${ teamId }/${ t.type }/${ g.id }/${ c.name }` ); // /${ t }
                 // } );
 
             } );
@@ -115,6 +239,11 @@ function fetchListeners( ) {
 module.exports = {
     generateTrafficData,
     fetchListeners,
-    globalGroupId,
-    trafficData
+    teamId,
+    trafficData,
+    TRAFFIC_LIGHT_STATUS,
+    WARNING_LIGHT_STATUS,
+    SENSOR_STATUS,
+    BARRIER_STATUS,
+    componentTypes
 };
