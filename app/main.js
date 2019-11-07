@@ -33,7 +33,7 @@ function onMessage( topic, data ) {
         return console.log( "[ERROR] Component is not a sensor." );
 
     currentTrafficGroup.sensorActivated = +data === 1;
-
+    console.log( 'sensor active: ', currentTrafficGroup.sensorActivated );
 
     // console.log( JSON.stringify( trafficData ) );
 }
@@ -49,6 +49,7 @@ function onMessage( topic, data ) {
 } )( );
 
 function getTimeDifference( date1, date2 ) {
+    // console.log( +date2 - +date1 > 5000 );
     return +date2 - +date1;
 }
 
@@ -118,6 +119,7 @@ setInterval( ( ) => {
 
     } );
 
-    console.log( `Total traffic lights changed: ${ trafficLightsChanged }` );
+    if( trafficLightsChanged > 0 )
+        console.log( `Total traffic lights changed: ${ trafficLightsChanged }` );
 
 }, 500 );
