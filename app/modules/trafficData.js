@@ -155,23 +155,6 @@ const disallowedTrafficLights = [
 
 ];
 
-
-// west to east motorised
-// [
-//     { type: 'foot', groupId: 2 },
-//     { type: 'foot', groupId: 3 },
-//     { type: 'foot', groupId: 6 },
-//     { type: 'foot', groupId: 7 },
-//     { type: 'cycle', groupId: 1 },
-//     { type: 'cycle', groupId: 4 },
-//     { type: 'cycle', groupId: 5 },
-//     { type: 'motorised', groupId: 0 },
-//     { type: 'motorised', groupId: 1 },
-//     { type: 'motorised', groupId: 4 },
-//     { type: 'motorised', groupId: 5 },
-//     { type: 'motorised', groupId: 6 },
-// ]
-
 const teamId = 16;
 
 function getDisallowedTrafficLights( type, groupId ) {
@@ -223,7 +206,7 @@ function fetchListeners( ) {
             componentTypes.forEach( c => {
 
                 // c.statusTypes.forEach( t => {
-                    listeners.push( `${ teamId }/${ t.type }/${ g.id }/${ c.name }` ); // /${ t }
+                    listeners.push( `${ teamId }/${ t.type }/${ g.id }/${ c.name }/0` ); // /${ t }
                 // } );
 
             } );

@@ -29,6 +29,12 @@ function onMessage( topic, data ) {
     if( !currentTrafficGroup )
         return console.log( '[ERROR] Invalid group ID specified.' );
 
+    if( componentType !== "sensor" )
+        return console.log( "[ERROR] Component is not a sensor." );
+
+    currentTrafficGroup.sensorActivated = +data === 1;
+
+
     // console.log( JSON.stringify( trafficData ) );
 }
 
@@ -39,7 +45,7 @@ function onMessage( topic, data ) {
     await mqtt.connect( );
 
     // submit data to foo and bar
-    // mqtt.submit( '16/foot/0/sensor', "2" );
+    // mqtt.submit( '16/motorised/0/traffic_light/0', "2" );
 } )( );
 
 function getTimeDifference( date1, date2 ) {
@@ -60,13 +66,13 @@ setInterval( ( ) => {
             {
                 if( g.sensorActivated === false || getTimeDifference( g.lastGreenLight, new Date( ) ) > maxGreenLightTime )
                 {
-                    g.currentStatus = TRAFFIC_LIGHT_STATUS.ORANGE;
-                    mqtt.submit( `${ teamId }/${ t.type }/${ g.id }/traffic_light/0`, "1" );
+                    // g.currentStatus = TRAFFIC_LIGHT_STATUS.ORANGE;
+                    // mqtt.submit( `${ teamId }/${ t.type }/${ g.id }/traffic_light/0`, "1" );
 
-                    setTimeout( ( ) => {
+                    // setTimeout( ( ) => {
                         g.currentStatus = TRAFFIC_LIGHT_STATUS.RED;
                         mqtt.submit( `${ teamId }/${ t.type }/${ g.id }/traffic_light/0`, "0" );
-                    }, 2000 );
+                    // }, 2000 );
 
                     trafficLightsChanged++;
                 }
