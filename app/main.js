@@ -14,7 +14,7 @@ const mqtt = new MqttWrapper( config, fetchListeners( ), onMessage );
 function onMessage( topic, data ) {
     console.log( `data recieved: ${ topic }: ${ data.toString( ) }` );
 
-    const [ gId, trafficType, groupId, componentType, action ] = topic.split( '/' );
+    const [ gId, trafficType, groupId, subGroupId, componentType, action ] = topic.split( '/' );
 
     if( +gId !== teamId )
         return console.log( '[ERROR] GroupID isnt valid!' );
@@ -53,11 +53,38 @@ function getTimeDifference( date1, date2 ) {
     return +date2 - +date1;
 }
 
+function canTurnGreen( g ) {
+
+    let turnGreen = true;
+
+    g.disallowedTrafficLights.forEach( dt => {
+
+        let tlData = trafficData.find(td => td.type === dt.type);
+
+        if( tlData )
+        {
+            let trafficLight = tlData.groups.find( tg => tg.id === dt.groupId );
+
+            if( trafficLight )
+            {
+                if( trafficLight.currentStatus === TRAFFIC_LIGHT_STATUS.GREEN )
+                    turnGreen = false;
+            }
+        }
+
+    } );
+
+    return turnGreen;
+}
+
 const maxGreenLightTime = 5000;
 
 setInterval( ( ) => {
 
-    let trafficLightsChanged = 0;
+    let trafficLightsChangedToGreen = 0;
+    let trafficLightsChangedToRed = 0;
+
+    let trafficLightsInQueue = [];
 
     trafficData.forEach( t => {
 
@@ -72,54 +99,63 @@ setInterval( ( ) => {
 
                     // setTimeout( ( ) => {
                         g.currentStatus = TRAFFIC_LIGHT_STATUS.RED;
-                        mqtt.submit( `${ teamId }/${ t.type }/${ g.id }/traffic_light/0`, "0" );
+                        mqtt.submit( `${ teamId }/${ t.type }/${ g.id }/null/traffic_light/0`, "0" );
+                        console.log( `${ teamId }/${ t.type }/${ g.id }/null/traffic_light/0: set to red ` );
                     // }, 2000 );
 
-                    trafficLightsChanged++;
+                    trafficLightsChangedToRed++;
                 }
             }
 
-            if( g.sensorActivated === true && g.currentStatus === TRAFFIC_LIGHT_STATUS.RED )
+            else if( g.sensorActivated === true && g.currentStatus === TRAFFIC_LIGHT_STATUS.RED )
             {
                 if( getTimeDifference( g.lastGreenLight, new Date( ) ) > maxGreenLightTime )
                 {
-
-                    let turnGreen = true;
-
-                    g.disallowedTrafficLights.forEach( dt => {
-
-                        let tlData = trafficData.find(td => td.type === dt.type);
-
-                        if( tlData )
-                        {
-                            let trafficLight = tlData.groups.find( tg => tg.id === dt.groupId );
-
-                            if( trafficLight )
-                            {
-                                if( trafficLight.currentStatus === TRAFFIC_LIGHT_STATUS.GREEN )
-                                    turnGreen = false;
-                            }
-                        }
-
+                    trafficLightsInQueue.push( {
+                        t: t,
+                        group: g,
+                        topic: `${ teamId }/${ t.type }/${ g.id }/null/traffic_light/0`,
+                        payload: "2"
                     } );
-
-                    if( turnGreen )
-                    {
-                        g.lastGreenLight = new Date( );
-                        g.currentStatus = TRAFFIC_LIGHT_STATUS.GREEN;
-                        mqtt.submit( `${ teamId }/${ t.type }/${ g.id }/traffic_light/0`, "2" );
-
-                        trafficLightsChanged++;
-                    }
-
                 }
             }
 
+            // console.log( `trafficlights in queue: ${ trafficLightsInQueue.length }` );
         } );
 
     } );
 
-    if( trafficLightsChanged > 0 )
-        console.log( `Total traffic lights changed: ${ trafficLightsChanged }` );
+    trafficLightsInQueue.sort( ( t1, t2 ) => +t1.group.lastGreenLight - +t2.group.lastGreenLight );
 
-}, 500 );
+    if( trafficLightsInQueue.length > 0 )
+        console.log( 'trafficlights in queue: ', trafficLightsInQueue.length );
+
+    trafficLightsInQueue.forEach( tl => {
+
+        if( canTurnGreen( tl.group ) )
+        {
+            let actualTrafficData = trafficData.find( t => t === tl.t );
+
+            if( !actualTrafficData )
+                return console.log( "Traffic data couldnt be found." );
+
+            let actualGroup = actualTrafficData.groups.find( g => g === tl.group );
+
+            if( !actualGroup )
+                return console.log( "Traffic group couldnt be found." );
+
+            actualGroup.lastGreenLight = new Date( );
+            actualGroup.currentStatus = TRAFFIC_LIGHT_STATUS.GREEN;
+            mqtt.submit( tl.topic, tl.payload );
+            console.log( `${ tl.topic } set to green` );
+            trafficLightsChangedToGreen++;
+        }
+    } );
+
+    if( trafficLightsChangedToGreen > 0 )
+        console.log( `Total traffic lights changed to green: ${ trafficLightsChangedToGreen }` );
+
+    if( trafficLightsChangedToRed > 0 )
+        console.log( `Total traffic lights changed to red: ${ trafficLightsChangedToRed }` );
+
+}, 2000 );

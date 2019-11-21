@@ -206,7 +206,7 @@ function fetchListeners( ) {
             componentTypes.forEach( c => {
 
                 // c.statusTypes.forEach( t => {
-                    listeners.push( `${ teamId }/${ t.type }/${ g.id }/${ c.name }/0` ); // /${ t }
+                    listeners.push( `${ teamId }/${ t.type }/${ g.id }/null/${ c.name }/0` ); // /${ t }
                 // } );
 
             } );
