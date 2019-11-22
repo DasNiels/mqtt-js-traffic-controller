@@ -22,7 +22,6 @@ const TRAFFIC_LIGHT_STATUS = {
     RED: 0,
     ORANGE: 1,
     GREEN: 2,
-    OOS: 3 // Out Of Service
 };
 
 const WARNING_LIGHT_STATUS = {
@@ -38,6 +37,16 @@ const SENSOR_STATUS = {
 const BARRIER_STATUS = {
     GREEN: 0,
     RED: 1
+};
+
+const BOAT_LIGHT_STATUS = {
+    RED: 0,
+    GREEN: 1
+};
+
+const DECK_STATUS = {
+    CLOSED: 0,
+    OPEN: 1
 };
 
 const componentTypes = [
@@ -65,9 +74,9 @@ const disallowedTrafficLights = [
         laneType: 'motorised',
         groupId: 0,
         disallowed: [
-            { type: 'motorised', groupId: 4 },
-            { type: 'motorised', groupId: 5 },
-            { type: 'motorised', groupId: 7 },
+            { type: 'motorised', groupId: 4 }, // Oost -> Zuid
+            { type: 'motorised', groupId: 5 }, // Zuid -> Noord & Oost
+            { type: 'motorised', groupId: 7 }, // West -> Noord
         ]
     },
 
@@ -75,10 +84,10 @@ const disallowedTrafficLights = [
         laneType: 'motorised',
         groupId: 1,
         disallowed: [
-            { type: 'motorised', groupId: 4 },
-            { type: 'motorised', groupId: 6 },
-            { type: 'motorised', groupId: 7 },
-            { type: 'motorised', groupId: 8 },
+            { type: 'motorised', groupId: 4 }, // Oost -> Zuid
+            { type: 'motorised', groupId: 6 }, // Zuid -> West
+            { type: 'motorised', groupId: 7 }, // West -> Noord
+            { type: 'motorised', groupId: 8 }, // West -> Zuid
         ]
     },
 
@@ -86,7 +95,7 @@ const disallowedTrafficLights = [
         laneType: 'motorised',
         groupId: 2,
         disallowed: [
-            { type: 'motorised', groupId: 6 },
+            { type: 'motorised', groupId: 6 }, // Zuid -> West
         ]
     },
 
@@ -94,8 +103,8 @@ const disallowedTrafficLights = [
         laneType: 'motorised',
         groupId: 3,
         disallowed: [
-            { type: 'motorised', groupId: 5 },
-            { type: 'motorised', groupId: 7 },
+            { type: 'motorised', groupId: 5 }, // Zuid -> Noord & Oost
+            { type: 'motorised', groupId: 7 }, // West -> Noord
         ]
     },
 
@@ -103,10 +112,11 @@ const disallowedTrafficLights = [
         laneType: 'motorised',
         groupId: 4,
         disallowed: [
-            { type: 'motorised', groupId: 0 },
-            { type: 'motorised', groupId: 1 },
-            { type: 'motorised', groupId: 5 },
-            { type: 'motorised', groupId: 8 },
+            { type: 'motorised', groupId: 0 }, // Noord -> Oost
+            { type: 'motorised', groupId: 1 }, // Noord -> Zuid
+            { type: 'motorised', groupId: 5 }, // Zuid -> Noord & Oost
+            { type: 'motorised', groupId: 6 }, // Zuid -> West
+            { type: 'motorised', groupId: 8 }, // West -> Zuid
         ]
     },
 
@@ -114,10 +124,10 @@ const disallowedTrafficLights = [
         laneType: 'motorised',
         groupId: 5,
         disallowed: [
-            { type: 'motorised', groupId: 0 },
-            { type: 'motorised', groupId: 3 },
-            { type: 'motorised', groupId: 4 },
-            { type: 'motorised', groupId: 7 },
+            { type: 'motorised', groupId: 0 }, // Noord & Oost
+            { type: 'motorised', groupId: 3 }, // Oost -> Noord
+            { type: 'motorised', groupId: 4 }, // Oost -> Zuid
+            { type: 'motorised', groupId: 7 }, // West -> Noord
         ]
     },
 
@@ -125,10 +135,10 @@ const disallowedTrafficLights = [
         laneType: 'motorised',
         groupId: 6,
         disallowed: [
-            { type: 'motorised', groupId: 1 },
-            { type: 'motorised', groupId: 2 },
-            { type: 'motorised', groupId: 4 },
-            { type: 'motorised', groupId: 7 },
+            { type: 'motorised', groupId: 1 }, // Noord -> Zuid
+            { type: 'motorised', groupId: 2 }, // Noord -> West
+            { type: 'motorised', groupId: 4 }, // Oost -> Zuid
+            { type: 'motorised', groupId: 7 }, // West -> Noord
         ]
     },
 
@@ -136,11 +146,11 @@ const disallowedTrafficLights = [
         laneType: 'motorised',
         groupId: 7,
         disallowed: [
-            { type: 'motorised', groupId: 0 },
-            { type: 'motorised', groupId: 1 },
-            { type: 'motorised', groupId: 3 },
-            { type: 'motorised', groupId: 5 },
-            { type: 'motorised', groupId: 6 },
+            { type: 'motorised', groupId: 0 }, // Noord & Oost
+            { type: 'motorised', groupId: 1 }, // Noord -> Zuid
+            { type: 'motorised', groupId: 3 }, // Oost -> Noord
+            { type: 'motorised', groupId: 5 }, // Zuid -> Noord & Oost
+            { type: 'motorised', groupId: 6 }, // Zuid -> West
         ]
     },
 
@@ -148,8 +158,8 @@ const disallowedTrafficLights = [
         laneType: 'motorised',
         groupId: 8,
         disallowed: [
-            { type: 'motorised', groupId: 1 },
-            { type: 'motorised', groupId: 4 },
+            { type: 'motorised', groupId: 1 }, // Noord -> Zuid
+            { type: 'motorised', groupId: 4 }, // Oost -> Zuid
         ]
     },
 
@@ -206,7 +216,7 @@ function fetchListeners( ) {
             componentTypes.forEach( c => {
 
                 // c.statusTypes.forEach( t => {
-                    listeners.push( `${ teamId }/${ t.type }/${ g.id }/null/${ c.name }/0` ); // /${ t }
+                    listeners.push( `${ teamId }/${ t.type }/${ g.id }/${ c.name }/0` ); // /${ t }
                 // } );
 
             } );

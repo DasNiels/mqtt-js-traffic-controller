@@ -14,7 +14,7 @@ const mqtt = new MqttWrapper( config, fetchListeners( ), onMessage );
 function onMessage( topic, data ) {
     console.log( `data recieved: ${ topic }: ${ data.toString( ) }` );
 
-    const [ gId, trafficType, groupId, subGroupId, componentType, action ] = topic.split( '/' );
+    const [ gId, trafficType, groupId, componentType, action ] = topic.split( '/' );
 
     if( +gId !== teamId )
         return console.log( '[ERROR] GroupID isnt valid!' );
@@ -79,6 +79,8 @@ function canTurnGreen( g ) {
 
 const maxGreenLightTime = 5000;
 
+let lastAnyRedLight = new Date( );
+
 setInterval( ( ) => {
 
     let trafficLightsChangedToGreen = 0;
@@ -99,22 +101,24 @@ setInterval( ( ) => {
 
                     // setTimeout( ( ) => {
                         g.currentStatus = TRAFFIC_LIGHT_STATUS.RED;
-                        mqtt.submit( `${ teamId }/${ t.type }/${ g.id }/null/traffic_light/0`, "0" );
-                        console.log( `${ teamId }/${ t.type }/${ g.id }/null/traffic_light/0: set to red ` );
+                        mqtt.submit( `${ teamId }/${ t.type }/${ g.id }/traffic_light/0`, "0" );
+                        console.log( `${ teamId }/${ t.type }/${ g.id }/traffic_light/0: set to red ` );
                     // }, 2000 );
+
+                    lastAnyRedLight = new Date( );
 
                     trafficLightsChangedToRed++;
                 }
             }
 
-            else if( g.sensorActivated === true && g.currentStatus === TRAFFIC_LIGHT_STATUS.RED )
+            else if( g.sensorActivated === true && g.currentStatus === TRAFFIC_LIGHT_STATUS.RED && getTimeDifference( lastAnyRedLight, new Date( ) ) > 5000 )
             {
                 if( getTimeDifference( g.lastGreenLight, new Date( ) ) > maxGreenLightTime )
                 {
                     trafficLightsInQueue.push( {
                         t: t,
                         group: g,
-                        topic: `${ teamId }/${ t.type }/${ g.id }/null/traffic_light/0`,
+                        topic: `${ teamId }/${ t.type }/${ g.id }/traffic_light/0`,
                         payload: "2"
                     } );
                 }
