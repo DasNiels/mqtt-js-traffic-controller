@@ -70,13 +70,21 @@ const componentTypes = [
 
 const disallowedTrafficLights = [
 
+    // MOTORISED
+
     { // Noord -> Oost
         laneType: 'motorised',
         groupId: 0,
         disallowed: [
             { type: 'motorised', groupId: 4 }, // Oost -> Zuid
             { type: 'motorised', groupId: 5 }, // Zuid -> Noord & Oost
-            { type: 'motorised', groupId: 7 }, // West -> Noord
+            { type: 'motorised', groupId: 7 }, // West -> Noord,
+
+            { type: 'cycle', groupId: 0 }, // Noord: Oost -> West
+            { type: 'cycle', groupId: 1 }, // Oost: Zuid -> Noord
+
+            { type: 'foot', groupId: 1 }, // Noord: West -> Tussenstuk
+            { type: 'foot', groupId: 2 }, // Oost: Noord -> Zuid
         ]
     },
 
@@ -88,6 +96,13 @@ const disallowedTrafficLights = [
             { type: 'motorised', groupId: 6 }, // Zuid -> West
             { type: 'motorised', groupId: 7 }, // West -> Noord
             { type: 'motorised', groupId: 8 }, // West -> Zuid
+
+            { type: 'cycle', groupId: 0 }, // Noord: Oost -> West
+            { type: 'cycle', groupId: 2 }, // Zuid: Noorden van spoort, West -> Oost
+            { type: 'cycle', groupId: 3 }, // Zuid: Zuiden van spoort, Oost -> West
+
+            { type: 'foot', groupId: 1 }, // Noord: West -> Tussenstuk
+            { type: 'foot', groupId: 5 }, // Zuid: West -> Westelijke tussenstuk
         ]
     },
 
@@ -96,6 +111,12 @@ const disallowedTrafficLights = [
         groupId: 2,
         disallowed: [
             { type: 'motorised', groupId: 6 }, // Zuid -> West
+
+            { type: 'cycle', groupId: 0 }, // Noord: Oost -> West
+            { type: 'cycle', groupId: 4 }, // West: Noord -> Zuid
+
+            { type: 'foot', groupId: 1 }, // Noord: West -> Tussenstuk
+            { type: 'foot', groupId: 6 }, // West: Noord -> Zuid
         ]
     },
 
@@ -105,6 +126,12 @@ const disallowedTrafficLights = [
         disallowed: [
             { type: 'motorised', groupId: 5 }, // Zuid -> Noord & Oost
             { type: 'motorised', groupId: 7 }, // West -> Noord
+
+            { type: 'cycle', groupId: 0 }, // Noord: Oost -> West
+            { type: 'cycle', groupId: 1 }, // Oost: Zuid -> Noord
+
+            { type: 'foot', groupId: 0 }, // Noord: Oost -> Tussenstuk
+            { type: 'foot', groupId: 2 }, // Oost: Noord -> Zuid
         ]
     },
 
@@ -117,6 +144,13 @@ const disallowedTrafficLights = [
             { type: 'motorised', groupId: 5 }, // Zuid -> Noord & Oost
             { type: 'motorised', groupId: 6 }, // Zuid -> West
             { type: 'motorised', groupId: 8 }, // West -> Zuid
+
+            { type: 'cycle', groupId: 1 }, // Oost: Zuid -> Noord
+            { type: 'cycle', groupId: 2 }, // Zuid: Noorden van spoort, West -> Oost
+            { type: 'cycle', groupId: 3 }, // Zuid: Zuiden van spoort, Oost -> West
+
+            { type: 'foot', groupId: 2 }, // Oost: Noord -> Zuid
+            { type: 'foot', groupId: 5 }, // Zuid: West -> Westelijke tussenstuk
         ]
     },
 
@@ -128,6 +162,15 @@ const disallowedTrafficLights = [
             { type: 'motorised', groupId: 3 }, // Oost -> Noord
             { type: 'motorised', groupId: 4 }, // Oost -> Zuid
             { type: 'motorised', groupId: 7 }, // West -> Noord
+
+            { type: 'cycle', groupId: 0 }, // Noord: Oost -> West
+            { type: 'cycle', groupId: 1 }, // Oost: Zuid -> Noord
+            { type: 'cycle', groupId: 2 }, // Zuid: Noorden van spoort, West -> Oost
+            { type: 'cycle', groupId: 3 }, // Zuid: Zuiden van spoort, Oost -> West
+
+            { type: 'foot', groupId: 0 }, // Noord: Oost -> Tussenstuk
+            { type: 'foot', groupId: 2 }, // Oost: Noord -> Zuid
+            { type: 'foot', groupId: 3 }, // Zuid: Oost -> Oostelijke tussenstuk
         ]
     },
 
@@ -139,6 +182,13 @@ const disallowedTrafficLights = [
             { type: 'motorised', groupId: 2 }, // Noord -> West
             { type: 'motorised', groupId: 4 }, // Oost -> Zuid
             { type: 'motorised', groupId: 7 }, // West -> Noord
+
+            { type: 'cycle', groupId: 2 }, // Zuid: Noorden van spoort, West -> Oost
+            { type: 'cycle', groupId: 3 }, // Zuid: Zuiden van spoort, Oost -> West
+            { type: 'cycle', groupId: 4 }, // West: Noord -> Zuid
+
+            { type: 'foot', groupId: 4 }, // Zuid: Oostelijke tussenstuk -> Westelijke tussenstuk
+            { type: 'foot', groupId: 6 }, // West: Noord -> Zuid
         ]
     },
 
@@ -151,6 +201,12 @@ const disallowedTrafficLights = [
             { type: 'motorised', groupId: 3 }, // Oost -> Noord
             { type: 'motorised', groupId: 5 }, // Zuid -> Noord & Oost
             { type: 'motorised', groupId: 6 }, // Zuid -> West
+
+            { type: 'cycle', groupId: 0 }, // Noord: Oost -> West
+            { type: 'cycle', groupId: 4 }, // West: Noord -> Zuid
+
+            { type: 'foot', groupId: 0 }, // Noord: Oost -> Tussenstuk
+            { type: 'foot', groupId: 6 }, // West: Noord -> Zuid
         ]
     },
 
@@ -160,8 +216,168 @@ const disallowedTrafficLights = [
         disallowed: [
             { type: 'motorised', groupId: 1 }, // Noord -> Zuid
             { type: 'motorised', groupId: 4 }, // Oost -> Zuid
+
+            { type: 'cycle', groupId: 2 }, // Zuid: Noorden van spoort, West -> Oost
+            { type: 'cycle', groupId: 3 }, // Zuid: Zuiden van spoort, Oost -> West
+            { type: 'cycle', groupId: 4 }, // West: Noord -> Zuid
+
+            { type: 'foot', groupId: 5 }, // Zuid: West -> Westelijke tussenstuk
+            { type: 'foot', groupId: 6 }, // West: Noord -> Zuid
         ]
     },
+
+    // END MOTORISED
+
+
+    // CYCLE
+
+    { // Noord: Oost -> West
+        laneType: 'cycle',
+        groupId: 0,
+        disallowed: [
+            { type: 'motorised', groupId: 0 }, // Noord -> Oost
+            { type: 'motorised', groupId: 1 }, // Noord -> Zuid
+            { type: 'motorised', groupId: 2 }, // Noord -> West
+            { type: 'motorised', groupId: 3 }, // Oost -> Noord
+            { type: 'motorised', groupId: 5 }, // Zuid -> Noord & Oost
+            { type: 'motorised', groupId: 7 }, // West -> Noord
+        ]
+    },
+
+    { // Oost: Zuid -> Noord
+        laneType: 'cycle',
+        groupId: 1,
+        disallowed: [
+            { type: 'motorised', groupId: 0 }, // Noord -> Oost
+            { type: 'motorised', groupId: 3 }, // Oost -> Noord
+            { type: 'motorised', groupId: 4 }, // Oost -> Zuid
+            { type: 'motorised', groupId: 5 }, // Zuid -> Noord & Oost
+        ]
+    },
+
+    { // Zuid: Noorden van spoor, West -> Oost
+        laneType: 'cycle',
+        groupId: 2,
+        disallowed: [
+            { type: 'motorised', groupId: 1 }, // Noord -> Zuid
+            { type: 'motorised', groupId: 4 }, // Oost -> Zuid
+            { type: 'motorised', groupId: 5 }, // Zuid -> Noord & Oost
+            { type: 'motorised', groupId: 6 }, // Zuid -> West
+            { type: 'motorised', groupId: 8 }, // West -> Zuid
+        ]
+    },
+
+    { // Zuid: Zuiden van spoor, Oost -> West
+        laneType: 'cycle',
+        groupId: 3,
+        disallowed: [
+            { type: 'motorised', groupId: 1 }, // Noord -> Zuid
+            { type: 'motorised', groupId: 4 }, // Oost -> Zuid
+            { type: 'motorised', groupId: 5 }, // Zuid -> Noord & Oost
+            { type: 'motorised', groupId: 6 }, // Zuid -> West
+            { type: 'motorised', groupId: 8 }, // West -> Zuid
+        ]
+    },
+
+    { // West: Noord -> Zuid
+        laneType: 'cycle',
+        groupId: 4,
+        disallowed: [
+            { type: 'motorised', groupId: 1 }, // Noord -> Zuid
+            { type: 'motorised', groupId: 4 }, // Oost -> Zuid
+            { type: 'motorised', groupId: 5 }, // Zuid -> Noord & Oost
+            { type: 'motorised', groupId: 6 }, // Zuid -> West
+            { type: 'motorised', groupId: 8 }, // West -> Zuid
+        ]
+    },
+
+    // END CYCLE
+
+
+    // FOOT
+
+    { // Noord: Oost -> Tussenstuk
+        laneType: 'foot',
+        groupId: 0,
+        disallowed: [
+            { type: 'motorised', groupId: 3 }, // Oost -> Noord
+            { type: 'motorised', groupId: 5 }, // Zuid -> Noord & Oost
+            { type: 'motorised', groupId: 7 }, // West -> Noord
+        ]
+    },
+
+    { // Noord: West -> Tussenstuk
+        laneType: 'foot',
+        groupId: 1,
+        disallowed: [
+            { type: 'motorised', groupId: 0 }, // Noord -> Oost
+            { type: 'motorised', groupId: 1 }, // Noord -> Zuid
+            { type: 'motorised', groupId: 2 }, // Noord -> West
+        ]
+    },
+
+    { // Oost: Noord -> Zuid
+        laneType: 'foot',
+        groupId: 2,
+        disallowed: [
+            { type: 'motorised', groupId: 0 }, // Noord -> Oost
+            { type: 'motorised', groupId: 3 }, // Oost -> Noord
+            { type: 'motorised', groupId: 4 }, // Oost -> Zuid
+            { type: 'motorised', groupId: 5 }, // Zuid -> Noord & Oost
+        ]
+    },
+
+    { // Zuid: Oost -> Oostelijke tussenstuk
+        laneType: 'foot',
+        groupId: 3,
+        disallowed: [
+            { type: 'motorised', groupId: 5 }, // Zuid -> Noord & Oost
+        ]
+    },
+
+    { // Zuid: Oostelijke tussenstuk -> Westelijke tussenstuk
+        laneType: 'foot',
+        groupId: 4,
+        disallowed: [
+            { type: 'motorised', groupId: 6 }, // Zuid -> West
+        ]
+    },
+
+    { // Zuid: West -> Westelijke tussenstuk
+        laneType: 'foot',
+        groupId: 5,
+        disallowed: [
+            { type: 'motorised', groupId: 1 }, // Noord -> Zuid
+            { type: 'motorised', groupId: 4 }, // Oost -> Zuid
+            { type: 'motorised', groupId: 8 }, // West -> Zuid
+        ]
+    },
+
+    { // West: Noord -> Zuid
+        laneType: 'foot',
+        groupId: 6,
+        disallowed: [
+            { type: 'motorised', groupId: 2 }, // Noord -> West
+            { type: 'motorised', groupId: 6 }, // Zuid -> West
+            { type: 'motorised', groupId: 7 }, // West -> Noord
+            { type: 'motorised', groupId: 8 }, // West -> Zuid
+        ]
+    },
+
+    // END FOOT
+
+
+    // BOAT
+
+
+
+    // END BOAT
+
+
+    // TRAIN
+
+
+    // END TRAIN
 
 ];
 

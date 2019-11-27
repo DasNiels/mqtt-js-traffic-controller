@@ -14,7 +14,7 @@ const mqtt = new MqttWrapper( config, fetchListeners( ), onMessage );
 function onMessage( topic, data ) {
     console.log( `data recieved: ${ topic }: ${ data.toString( ) }` );
 
-    const [ gId, trafficType, groupId, componentType, action ] = topic.split( '/' );
+    const [ gId, trafficType, groupId, componentType, componentId ] = topic.split( '/' );
 
     if( +gId !== teamId )
         return console.log( '[ERROR] GroupID isnt valid!' );
@@ -55,6 +55,9 @@ function getTimeDifference( date1, date2 ) {
 
 function canTurnGreen( g ) {
 
+    if( getTimeDifference( lastAnyRedLight, new Date( ) ) < 5000 )
+        return false;
+
     let turnGreen = true;
 
     g.disallowedTrafficLights.forEach( dt => {
@@ -77,7 +80,7 @@ function canTurnGreen( g ) {
     return turnGreen;
 }
 
-const maxGreenLightTime = 5000;
+const maxGreenLightTime = 7500;
 
 let lastAnyRedLight = new Date( );
 
@@ -111,7 +114,7 @@ setInterval( ( ) => {
                 }
             }
 
-            else if( g.sensorActivated === true && g.currentStatus === TRAFFIC_LIGHT_STATUS.RED && getTimeDifference( lastAnyRedLight, new Date( ) ) > 5000 )
+            else if( g.sensorActivated === true && g.currentStatus === TRAFFIC_LIGHT_STATUS.RED )
             {
                 if( getTimeDifference( g.lastGreenLight, new Date( ) ) > maxGreenLightTime )
                 {
@@ -128,6 +131,9 @@ setInterval( ( ) => {
         } );
 
     } );
+
+    if( trafficLightsInQueue.length === 0 )
+        return;
 
     trafficLightsInQueue.sort( ( t1, t2 ) => +t1.group.lastGreenLight - +t2.group.lastGreenLight );
 
@@ -162,4 +168,4 @@ setInterval( ( ) => {
     if( trafficLightsChangedToRed > 0 )
         console.log( `Total traffic lights changed to red: ${ trafficLightsChangedToRed }` );
 
-}, 2000 );
+}, 500 );
