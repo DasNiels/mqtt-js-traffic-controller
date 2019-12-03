@@ -35,8 +35,8 @@ const SENSOR_STATUS = {
 };
 
 const BARRIER_STATUS = {
-    GREEN: 0,
-    RED: 1
+    OPEN: 0,
+    CLOSED: 1
 };
 
 const BOAT_LIGHT_STATUS = {
@@ -103,6 +103,8 @@ const disallowedTrafficLights = [
 
             { type: 'foot', groupId: 1 }, // Noord: West -> Tussenstuk
             { type: 'foot', groupId: 5 }, // Zuid: West -> Westelijke tussenstuk
+
+            { type: 'track', groupId: 0 } // Train
         ]
     },
 
@@ -151,6 +153,8 @@ const disallowedTrafficLights = [
 
             { type: 'foot', groupId: 2 }, // Oost: Noord -> Zuid
             { type: 'foot', groupId: 5 }, // Zuid: West -> Westelijke tussenstuk
+
+            { type: 'track', groupId: 0 } // Train
         ]
     },
 
@@ -171,6 +175,8 @@ const disallowedTrafficLights = [
             { type: 'foot', groupId: 0 }, // Noord: Oost -> Tussenstuk
             { type: 'foot', groupId: 2 }, // Oost: Noord -> Zuid
             { type: 'foot', groupId: 3 }, // Zuid: Oost -> Oostelijke tussenstuk
+
+            { type: 'track', groupId: 0 } // Train
         ]
     },
 
@@ -189,6 +195,8 @@ const disallowedTrafficLights = [
 
             { type: 'foot', groupId: 4 }, // Zuid: Oostelijke tussenstuk -> Westelijke tussenstuk
             { type: 'foot', groupId: 6 }, // West: Noord -> Zuid
+
+            { type: 'track', groupId: 0 } // Train
         ]
     },
 
@@ -223,6 +231,8 @@ const disallowedTrafficLights = [
 
             { type: 'foot', groupId: 5 }, // Zuid: West -> Westelijke tussenstuk
             { type: 'foot', groupId: 6 }, // West: Noord -> Zuid
+
+            { type: 'track', groupId: 0 } // Train
         ]
     },
 
@@ -350,6 +360,8 @@ const disallowedTrafficLights = [
             { type: 'motorised', groupId: 1 }, // Noord -> Zuid
             { type: 'motorised', groupId: 4 }, // Oost -> Zuid
             { type: 'motorised', groupId: 8 }, // West -> Zuid
+
+            { type: 'track', groupId: 0 } // Train
         ]
     },
 
@@ -369,13 +381,28 @@ const disallowedTrafficLights = [
 
     // BOAT
 
-
+    { // Boten
+        laneType: 'vessel',
+        groupId: 0,
+        disallowed: [ ]
+    },
 
     // END BOAT
 
 
     // TRAIN
 
+    { // Trein
+        laneType: 'track',
+        groupId: 0,
+        disallowed: [
+            // { type: 'motorised', groupId: 1 }, // Noord -> Zuid
+            // { type: 'motorised', groupId: 4 }, // Oost -> Zuid
+            // { type: 'motorised', groupId: 5 }, // Zuid -> Noord & Oost
+            // { type: 'motorised', groupId: 6 }, // Zuid -> West
+            // { type: 'motorised', groupId: 8 }, // West -> Zuid
+        ]
+    },
 
     // END TRAIN
 
@@ -392,7 +419,9 @@ function getDisallowedTrafficLights( type, groupId ) {
     return dtl.disallowed;
 }
 
-function generateTrafficData( type, minGroupId, maxGroupId ) {
+function generateTrafficData( type, minGroupId, maxGroupId, sensorAmount ) {
+
+    sensorAmount = sensorAmount || 1;
 
     let data = {
         type: type,
@@ -403,9 +432,12 @@ function generateTrafficData( type, minGroupId, maxGroupId ) {
     {
         data.groups.push( {
             id: i,
-            sensorActivated: false,
+            sensorAmount: sensorAmount,
+            sensorStatuses: new Array( sensorAmount + 1 ).fill( false ),
             lastGreenLight: new Date(),
             currentStatus: TRAFFIC_LIGHT_STATUS.RED,
+            barrierStatus: BARRIER_STATUS.OPEN,
+            warningLightStatus: WARNING_LIGHT_STATUS.OFF,
 
             disallowedTrafficLights: getDisallowedTrafficLights( type, i )
         } );
@@ -416,11 +448,11 @@ function generateTrafficData( type, minGroupId, maxGroupId ) {
 
 let trafficData = [ ];
 
-generateTrafficData( 'foot', 0, 7 );
-generateTrafficData( 'cycle', 0, 5 );
+generateTrafficData( 'foot', 0, 7, 5 );
+generateTrafficData( 'cycle', 0, 5, 5 );
 generateTrafficData( 'motorised', 0, 8 );
-generateTrafficData( 'vessel', 0, 1 );
-generateTrafficData( 'track', 0, 1 );
+generateTrafficData( 'vessel', 0, 1, 5 );
+generateTrafficData( 'track', 0, 1, 5 );
 
 function fetchListeners( ) {
     let listeners = [ ];
@@ -431,9 +463,10 @@ function fetchListeners( ) {
 
             componentTypes.forEach( c => {
 
-                // c.statusTypes.forEach( t => {
-                    listeners.push( `${ teamId }/${ t.type }/${ g.id }/${ c.name }/0` ); // /${ t }
-                // } );
+                for( let i = 0; i < g.sensorAmount; i++ )
+                {
+                    listeners.push( `${ teamId }/${ t.type }/${ g.id }/${ c.name }/${ i }` );
+                }
 
             } );
 
@@ -454,5 +487,7 @@ module.exports = {
     WARNING_LIGHT_STATUS,
     SENSOR_STATUS,
     BARRIER_STATUS,
+    DECK_STATUS,
+    BOAT_LIGHT_STATUS,
     componentTypes
 };
