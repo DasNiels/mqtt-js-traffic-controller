@@ -1,23 +1,4 @@
-// Foot(voetgangers):
-// 16/foot/22,23/traffic_light,sensor/0,1
-// 16/foot/24,25,28,29/traffic_light,sensor/0
-// 16/foot/26,27/traffic_light,sensor/0,1,2
-//
-// Cycle(fietsers, brommers):
-// 16/cycle/0,1,2,3,4,5,6/traffic_light,sensor/0
-//
-// Motorised(autos, vrachtwagens, motoren):
-// 16/motorised/7,8,9,10,11,12,13,14,15,16,17/traffic_light/0
-// 16/motorised/7,8,9,10,11,12,13,14,15,16,17/sensor/0,1
-//
-// Vessel(boten):
-// 16/vessel/18,19/traffic_light,sensor,warning_light/0
-// 16/vessel/18,19/barrier/0,1,2,3,4,5,6,7
-//
-// Track(treinen):
-// 16/track/20,21/traffic_light,sensor,warning_light/0
-// 16/track/20,21/barrier/0,1,2,3,4,5,6,7,8
-
+// Macros for all static data
 const TRAFFIC_LIGHT_STATUS = {
     RED: 0,
     ORANGE: 1,
@@ -50,24 +31,13 @@ const DECK_STATUS = {
 };
 
 const componentTypes = [
-    // {
-    //     name: 'traffic_light',
-    //     statusTypes: TRAFFIC_LIGHT_STATUS
-    // },
-    // {
-    //     name: 'warning_light',
-    //     statusTypes: WARNING_LIGHT_STATUS
-    // },
     {
         name: 'sensor',
         statusTypes: SENSOR_STATUS
-    },
-    // {
-    //     name: 'barrier',
-    //     statusTypes: BARRIER_STATUS
-    // }
+    }
 ];
 
+// each traffic light has a list of other traffic lights that have to be red in order for this traffic light to be allowed to be set to green.
 const disallowedTrafficLights = [
 
     // MOTORISED
@@ -408,17 +378,21 @@ const disallowedTrafficLights = [
 
 ];
 
+// our team ID
 const teamId = 16;
 
+// get the disallowed traffic lights for this traffic light from the array.
 function getDisallowedTrafficLights( type, groupId ) {
     let dtl = disallowedTrafficLights.find( dt => dt.laneType === type && dt.groupId === groupId );
 
+    // if it couldnt be found, return an empty array
     if( !dtl )
         return [];
 
     return dtl.disallowed;
 }
 
+// fill the traffic data array with all the required topics and data required
 function generateTrafficData( type, minGroupId, maxGroupId, sensorAmount ) {
 
     sensorAmount = sensorAmount || 1;
@@ -448,12 +422,14 @@ function generateTrafficData( type, minGroupId, maxGroupId, sensorAmount ) {
 
 let trafficData = [ ];
 
+// generate traffic data for all types
 generateTrafficData( 'foot', 0, 7, 5 );
 generateTrafficData( 'cycle', 0, 5, 5 );
 generateTrafficData( 'motorised', 0, 8 );
 generateTrafficData( 'vessel', 0, 1, 5 );
 generateTrafficData( 'track', 0, 1, 5 );
 
+// get a list of listeners that need to be listened on
 function fetchListeners( ) {
     let listeners = [ ];
 
