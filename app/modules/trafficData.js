@@ -146,7 +146,9 @@ const disallowedTrafficLights = [
             { type: 'foot', groupId: 2 }, // Oost: Noord -> Zuid
             { type: 'foot', groupId: 3 }, // Zuid: Oost -> Oostelijke tussenstuk
 
-            { type: 'track', groupId: 0 } // Train
+            { type: 'track', groupId: 0 }, // Train
+
+            { type: 'vessel', groupId: 0 }, // Boat
         ]
     },
 

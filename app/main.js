@@ -12,6 +12,8 @@ const mqtt = new MqttWrapper( config, fetchListeners( ), onMessage );
 
 // when a message is recieved, log it's topic and message
 function onMessage( topic, data ) {
+
+    // if( topic.includes( 'motorised' ) )
     console.log( `data recieved: ${ topic }: ${ data.toString( ) }` );
 
     // split the string on '/' and store each item in it's own variable
@@ -41,7 +43,7 @@ function onMessage( topic, data ) {
 
     // set sensor status for this component ID.
     currentTrafficGroup.sensorStatuses[ componentId ] = +data === 1;
-    console.log( `sensor [${ topic }] active: `, currentTrafficGroup.sensorStatuses[ componentId ] );
+    // console.log( `sensor [${ topic }] active: `, currentTrafficGroup.sensorStatuses[ componentId ] );
 
     // console.log( JSON.stringify( trafficData ) );
 }
@@ -115,7 +117,7 @@ function setMotorisedLightToRed( t, g ) {
 
     g.currentStatus = TRAFFIC_LIGHT_STATUS.ORANGE;
     mqtt.submit( `${ teamId }/${ t.type }/${ g.id }/traffic_light/0`, "1" );
-    console.log( `${ teamId }/${ t.type }/${ g.id }/traffic_light/0: set to orange ` );
+    // console.log( `${ teamId }/${ t.type }/${ g.id }/traffic_light/0: set to orange ` );
 
 
     setTimeout( ( ) => {
@@ -125,7 +127,7 @@ function setMotorisedLightToRed( t, g ) {
 
         g.currentStatus = TRAFFIC_LIGHT_STATUS.RED;
         mqtt.submit( `${ teamId }/${ t.type }/${ g.id }/traffic_light/0`, "0" );
-        console.log( `${ teamId }/${ t.type }/${ g.id }/traffic_light/0: set to red ` );
+        // console.log( `${ teamId }/${ t.type }/${ g.id }/traffic_light/0: set to red ` );
     }, 2000 );
 }
 
@@ -141,13 +143,17 @@ function tryOpenBridge( tl, actualGroup ) {
 
         // after 4 seconds, open the bridge
         setTimeout( ( ) => {
-            actualGroup.currentStatus = TRAFFIC_LIGHT_STATUS.GREEN;
             mqtt.submit( `${ teamId }/${ tl.t.type }/${ actualGroup.id }/deck/0`, `${ DECK_STATUS.OPEN }` );
 
             // after 10 seconds, set boat lights to green
             setTimeout( ( ) => {
-                mqtt.submit( `${ teamId }/${ tl.t.type }/${ actualGroup.id }/boat_light/0`, `${ BOAT_LIGHT_STATUS.GREEN }` );
-                mqtt.submit( `${ teamId }/${ tl.t.type }/${ actualGroup.id }/boat_light/1`, `${ BOAT_LIGHT_STATUS.GREEN }` );
+
+                actualGroup.currentStatus = TRAFFIC_LIGHT_STATUS.GREEN;
+
+                if( actualGroup.sensorStatuses[ 0 ] )
+                    mqtt.submit( `${ teamId }/${ tl.t.type }/${ actualGroup.id }/boat_light/0`, `${ BOAT_LIGHT_STATUS.GREEN }` );
+                else
+                    mqtt.submit( `${ teamId }/${ tl.t.type }/${ actualGroup.id }/boat_light/1`, `${ BOAT_LIGHT_STATUS.GREEN }` );
             }, 10000 );
         }, 4000 );
 
@@ -190,7 +196,9 @@ function tryCloseBridge( t, g ) {
 const maxGreenLightTime = 7500;
 
 // last time any light was set to red
-let lastAnyRedLight = new Date( );
+let lastAnyRedLight = new Date( '01/01/1970' );
+let lastBridgeOpened = new Date( '01/01/1970' );
+let trafficLightTimeout = 2500;
 
 setInterval( ( ) => {
 
@@ -207,46 +215,66 @@ setInterval( ( ) => {
             // if the traffic light is on green
             if( g.currentStatus === TRAFFIC_LIGHT_STATUS.GREEN )
             {
-                // if there are no more vehicles waiting at the traffic light or if the maximum time has passed
-                if( g.sensorStatuses.every( s => s === false ) || getTimeDifference( g.lastGreenLight, new Date( ) ) > maxGreenLightTime )
+                // if this is a train
+                if( t.type === 'track' )
                 {
-                    // if this is a train
-                    if( t.type === 'track' )
+                    // if all sensors are inactive, try to open the barriers etc
+                    if( g.sensorStatuses.every( s => s === false ) )
                     {
-                        // if all sensors are inactive, try to open the barriers etc
-                        if( g.sensorStatuses.every( s => s === false ) )
+                        // open the barriers
+                        mqtt.submit( `${ teamId }/${ t.type }/${ g.id }/train_light/0`, `${ TRAFFIC_LIGHT_STATUS.RED }` );
+                        mqtt.submit( `${ teamId }/${ t.type }/${ g.id }/train_light/1`, `${ TRAFFIC_LIGHT_STATUS.RED }` );
+                        mqtt.submit( `${ teamId }/${ t.type }/${ g.id }/barrier/0`, `${ BARRIER_STATUS.OPEN }` );
+                        g.barrierStatus = BARRIER_STATUS.OPEN;
+
+                        // after 4 seconds, disable warning lights and train lights
+                        setTimeout( ( ) => {
+                            g.warningLightStatus = WARNING_LIGHT_STATUS.OFF;
+                            mqtt.submit( `${ teamId }/${ t.type }/${ g.id }/warning_light/0`, `${ WARNING_LIGHT_STATUS.OFF }` );
+                        }, 4000 );
+
+                        g.currentStatus = TRAFFIC_LIGHT_STATUS.RED;
+
+                        lastAnyRedLight = new Date( );
+                        trafficLightsChangedToRed++;
+                    }
+
+                }
+                // if this is a boat
+                else if( t.type === 'vessel' )
+                {
+                    // if all sensors are inactive, try to close the bridge
+                    if( g.sensorStatuses.every( s => s === false ) )
+                    {
+                        tryCloseBridge( t, g );
+
+                        lastAnyRedLight = new Date( );
+                        lastBridgeOpened = new Date( );
+                        trafficLightsChangedToRed++;
+                    }
+
+                    else if( !g.sensorStatuses[ 1 ] )
+                    {
+                        if( g.sensorStatuses[ 0 ] )
                         {
-                            // open the barriers
-                            mqtt.submit( `${ teamId }/${ t.type }/${ g.id }/barrier/0`, `${ BARRIER_STATUS.OPEN }` );
-                            g.barrierStatus = BARRIER_STATUS.OPEN;
-
-                            // after 4 seconds, disable warning lights and train lights
-                            setTimeout( ( ) => {
-                                g.warningLightStatus = WARNING_LIGHT_STATUS.OFF;
-                                mqtt.submit( `${ teamId }/${ t.type }/${ g.id }/warning_light/0`, `${ WARNING_LIGHT_STATUS.OFF }` );
-                                mqtt.submit( `${ teamId }/${ t.type }/${ g.id }/train_light/0`, `${ TRAFFIC_LIGHT_STATUS.RED }` );
-                                mqtt.submit( `${ teamId }/${ t.type }/${ g.id }/train_light/1`, `${ TRAFFIC_LIGHT_STATUS.RED }` );
-
-                            }, 4000 );
-
-                            g.currentStatus = TRAFFIC_LIGHT_STATUS.RED;
+                            mqtt.submit( `${ teamId }/${ t.type }/${ g.id }/boat_light/0`, `${ BOAT_LIGHT_STATUS.GREEN }` );
+                            mqtt.submit( `${ teamId }/${ t.type }/${ g.id }/boat_light/1`, `${ BOAT_LIGHT_STATUS.RED }` );
                         }
 
+                        else if( g.sensorStatuses[ 2 ] )
+                        {
+                            mqtt.submit( `${ teamId }/${ t.type }/${ g.id }/boat_light/0`, `${ BOAT_LIGHT_STATUS.RED }` );
+                            mqtt.submit( `${ teamId }/${ t.type }/${ g.id }/boat_light/1`, `${ BOAT_LIGHT_STATUS.GREEN }` );
+                        }
                     }
-                    // if this is a boat
-                    else if( t.type === 'vessel' )
-                    {
-                        // if all sensors are inactive, try to close the bridge
-                        if( g.sensorStatuses.every( s => s === false ) )
-                            tryCloseBridge( t, g );
-                    }
-                    else // if cycle/motorised/foot
-                    {
-                        setMotorisedLightToRed( t, g );
-                    }
+                }
+
+                // if cycle/motorised/foot
+                else if( g.sensorStatuses.every( s => s === false ) || getTimeDifference( g.lastGreenLight, new Date( ) ) > maxGreenLightTime )
+                {
+                    setMotorisedLightToRed( t, g );
 
                     lastAnyRedLight = new Date( );
-
                     trafficLightsChangedToRed++;
                 }
             }
@@ -254,16 +282,24 @@ setInterval( ( ) => {
             // if there's a vehicle waiting at a red light
             else if( g.sensorStatuses.some( ( s, i ) => s === true && i !== 3 && i !== 1 ) && g.currentStatus === TRAFFIC_LIGHT_STATUS.RED )
             {
-                // if the vehicle has waited for a bit
-                if( getTimeDifference( g.lastGreenLight, new Date( ) ) > maxGreenLightTime )
+                // if the last time a light was changed to red is more than 1.5 seconds ago, the crossroads should be empty and thus we can set other traffic lights to green now
+                if( getTimeDifference( lastAnyRedLight, new Date( ) ) > trafficLightTimeout )
                 {
-                    // add this traffic light to queue
-                    trafficLightsInQueue.push( {
-                        t: t,
-                        group: g,
-                        topic: `${ teamId }/${ t.type }/${ g.id }/traffic_light/0`,
-                        payload: "2"
-                    } );
+                    // if the vehicle has waited for a bit
+                    if( getTimeDifference( g.lastGreenLight, new Date( ) ) > maxGreenLightTime )
+                    {
+                        // if it's a vessel, check if the last time the bridge opened was more than 30 seconds ago, or if it's not a vessel, add it to the list
+                        if( ( t.type === 'vessel' && getTimeDifference( lastBridgeOpened, new Date( ) ) > 30000 ) || t.type !== 'vessel' )
+                        {
+                            // add this traffic light to queue
+                            trafficLightsInQueue.push( {
+                                t: t,
+                                group: g,
+                                topic: `${ teamId }/${ t.type }/${ g.id }/traffic_light/0`,
+                                payload: "2"
+                            } );
+                        }
+                    }
                 }
             }
         } );
@@ -279,7 +315,7 @@ setInterval( ( ) => {
 
     // make sure the train and boat lights are added to the front of the queue since these get priority.
     let trainIdx = trafficLightsInQueue.findIndex( tliq => tliq.t.type === 'track' );
-    let boatIdx = trafficLightsInQueue.findIndex( tliq => tliq.t.type === 'vessel' );
+    // let boatIdx = trafficLightsInQueue.findIndex( tliq => tliq.t.type === 'vessel' );
 
     if( trainIdx !== -1 ) {
         let firstItem = trafficLightsInQueue[ 0 ];
@@ -288,21 +324,21 @@ setInterval( ( ) => {
         trafficLightsInQueue[ trainIdx ] = firstItem;
     }
 
-    if( boatIdx !== -1 ) {
-
-        let newIdx = trainIdx === -1 ? 0 : 1;
-
-        let item = trafficLightsInQueue[ newIdx ];
-
-        trafficLightsInQueue[ newIdx ] = trafficLightsInQueue[ boatIdx ];
-        trafficLightsInQueue[ boatIdx ] = item;
-    }
+    // if( boatIdx !== -1 ) {
+    //
+    //     let newIdx = trainIdx === -1 ? 0 : 1;
+    //
+    //     let item = trafficLightsInQueue[ newIdx ];
+    //
+    //     trafficLightsInQueue[ newIdx ] = trafficLightsInQueue[ boatIdx ];
+    //     trafficLightsInQueue[ boatIdx ] = item;
+    // }
     /////////////////
 
 
     // log the amount of traffic lights that are waiting in the queue
-    if( trafficLightsInQueue.length > 0 )
-        console.log( 'trafficlights in queue: ', trafficLightsInQueue.length );
+    // if( trafficLightsInQueue.length > 0 )
+        // console.log( 'trafficlights in queue: ', trafficLightsInQueue.length );
 
     // loop thru queued traffic lights
     trafficLightsInQueue.forEach( tl => {
@@ -379,17 +415,17 @@ setInterval( ( ) => {
                 // send to simulator
                 mqtt.submit( tl.topic, tl.payload );
 
-                console.log( `${ tl.topic } set to green` );
+                // console.log( `${ tl.topic } set to green` );
                 trafficLightsChangedToGreen++;
             }
         }
     } );
 
     // log what happened
-    if( trafficLightsChangedToGreen > 0 )
-        console.log( `Total traffic lights changed to green: ${ trafficLightsChangedToGreen }` );
+    // if( trafficLightsChangedToGreen > 0 )
+    //     console.log( `Total traffic lights changed to green: ${ trafficLightsChangedToGreen }` );
 
-    if( trafficLightsChangedToRed > 0 )
-        console.log( `Total traffic lights changed to red: ${ trafficLightsChangedToRed }` );
+    // if( trafficLightsChangedToRed > 0 )
+    //     console.log( `Total traffic lights changed to red: ${ trafficLightsChangedToRed }` );
 
 }, 500 );

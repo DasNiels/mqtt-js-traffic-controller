@@ -116,6 +116,9 @@ function MqttWrapper( options, topics, onMessage ) {
      */
     this.submit = ( topic, data ) => {
         this.client.publish( topic, data );
+
+        // if( topic.includes( 'track' ) )
+        console.log( `submitting: ${ topic }: ${ data }` );
     };
 }
 
